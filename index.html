@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workday Everywhere + Sana Demo</title>
+<style>
+/* ===== CSS CUSTOM PROPERTIES ===== */
+:root {
+  --grad-start: #0a1628;
+  --grad-mid1: #1a237e;
+  --grad-mid2: #6a1b9a;
+  --grad-mid3: #ce93d8;
+  --grad-end: #f8bbd0;
+  --sana-gradient: linear-gradient(135deg, var(--grad-start), var(--grad-mid1), var(--grad-mid2), var(--grad-mid3), var(--grad-end));
+  /* Header banner gradient - matches the screenshot exactly (blue → purple, left to right) */
+  --header-gradient: linear-gradient(to right, #1a3a6c, #3a2d7c, #6a3d9a, #9a5ab8);
+  --teams-sidebar: #292929;
+  --teams-sidebar-width: 68px;
+  --workday-blue: #0052cc;
+  --workday-navy: #1b3a5c;
+  --workday-orange: #f5842b;
+  --user-msg-bg: #e8e3f3;
+  --bot-msg-bg: #ffffff;
+  --chat-bg: #f5f5f5;
+  --approve-blue: #0052cc;
+  --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--sana-gradient);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #242424;
+  overflow: hidden;
+}
+
+/* ===== TITLE SCREEN ===== */
+.title-screen {
+  text-align: center;
+  animation: fadeInUp 0.8s ease;
+  cursor: pointer;
+  padding: 40px;
+  color: #fff;
+}
+.title-screen h1 { font-size: 2.8rem; font-weight: 300; margin-bottom: 12px; letter-spacing: -0.5px; }
+.title-screen h2 { font-size: 1.2rem; font-weight: 300; opacity: 0.8; margin-bottom: 40px; }
+.title-screen .start-btn {
+  display: inline-block; padding: 14px 48px; border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 30px; font-size: 1rem; color: #fff; cursor: pointer;
+  transition: all 0.3s; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+}
+.title-screen .start-btn:hover { background: rgba(255,255,255,0.25); border-color: #fff; transform: scale(1.05); }
+
+/* ===== STAGE ===== */
+.stage {
+  width: 100vw; height: 100vh; display: none; flex-direction: column;
+  align-items: center; justify-content: center; position: relative;
+}
+.stage.active { display: flex; }
+
+/* ===== TEAMS WINDOW FRAME ===== */
+.teams-window {
+  width: 980px; max-width: 96vw; height: 700px; max-height: 88vh;
+  background: #f5f5f5; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; position: relative;
+  animation: fadeIn 0.4s ease;
+}
+
+/* Teams top bar (search bar area) */
+.teams-topbar {
+  height: 46px; background: #2b2b2b; display: flex; align-items: center;
+  padding: 0 16px; position: relative;
+}
+.teams-topbar .window-controls {
+  display: flex; gap: 8px; position: absolute; left: 16px;
+}
+.teams-topbar .dot { width: 12px; height: 12px; border-radius: 50%; }
+.teams-topbar .dot-red { background: #ff5f57; }
+.teams-topbar .dot-yellow { background: #febc2e; }
+.teams-topbar .dot-green { background: #28c840; }
+.teams-topbar .nav-arrows {
+  display: flex; gap: 4px; margin-left: 60px; color: rgba(255,255,255,0.5); font-size: 14px;
+}
+.teams-topbar .nav-arrows span { padding: 2px 6px; cursor: default; }
+.teams-topbar .search-box {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  background: #3b3b3b; border-radius: 4px; padding: 5px 16px;
+  color: rgba(255,255,255,0.6); font-size: 12px; width: 280px; text-align: center;
+}
+.teams-topbar .topbar-right {
+  position: absolute; right: 16px; display: flex; align-items: center; gap: 12px;
+}
+.teams-topbar .topbar-right .avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: #8b5cf6;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 11px; font-weight: 600;
+}
+.teams-topbar .topbar-dots { color: rgba(255,255,255,0.5); font-size: 16px; cursor: default; }
+.teams-topbar .window-btns {
+  display: flex; gap: 2px; color: rgba(255,255,255,0.5); font-size: 12px;
+}
+.teams-topbar .window-btns span { padding: 4px 8px; cursor: default; }
+
+/* Teams body layout */
+.teams-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ===== TEAMS SIDEBAR (exact from screenshots) ===== */
+.teams-sidebar {
+  width: var(--teams-sidebar-width); background: var(--teams-sidebar);
+  display: flex; flex-direction: column; align-items: center;
+  padding-top: 8px; gap: 4px; flex-shrink: 0;
+}
+.sidebar-item {
+  width: 48px; height: 44px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  border-radius: 6px; cursor: default; position: relative; color: rgba(255,255,255,0.7);
+}
+.sidebar-item:hover { background: rgba(255,255,255,0.08); }
+.sidebar-item.active { color: #fff; }
+.sidebar-item.active::before {
+  content: ''; position: absolute; left: -10px; top: 8px;
+  width: 3px; height: 28px; background: #fff; border-radius: 0 2px 2px 0;
+}
+.sidebar-item svg { width: 20px; height: 20px; }
+.sidebar-item .sidebar-label { font-size: 9px; line-height: 1; }
+.sidebar-separator { width: 36px; height: 1px; background: rgba(255,255,255,0.12); margin: 4px 0; }
+
+/* ===== TEAMS MAIN CONTENT ===== */
+.teams-main { flex: 1; display: flex; flex-direction: column; background: #fff; overflow: hidden; }
+
+/* Workday nav bar */
+.wd-navbar {
+  height: 48px; background: #fff; border-bottom: 1px solid #e0e0e0;
+  display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
+}
+.wd-navbar .wd-nav-logo { width: 24px; height: 24px; flex-shrink: 0; }
+.wd-navbar .wd-nav-title { font-size: 15px; font-weight: 600; color: #242424; margin-right: 8px; }
+.wd-navbar .wd-nav-tabs { display: flex; gap: 0; margin-left: 4px; height: 100%; }
+.wd-nav-tab {
+  font-size: 13px; color: #616161; padding: 0 12px; cursor: pointer;
+  display: flex; align-items: center; height: 100%; border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+.wd-nav-tab:hover { color: #242424; }
+.wd-nav-tab.active { color: #242424; font-weight: 600; border-bottom-color: var(--workday-blue); }
+
+/* ===== HOME VIEW (App tab) ===== */
+.wd-home-content { flex: 1; overflow-y: auto; background: #f5f5f5; }
+
+/* Header banner with gradient */
+.wd-header-banner {
+  background: var(--header-gradient); padding: 0 24px; min-height: 52px;
+  display: flex; align-items: center; gap: 0;
+}
+.wd-header-tab {
+  padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  cursor: default; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.8);
+}
+.wd-header-tab.active-home { background: var(--workday-blue); color: #fff; }
+.wd-header-tab svg { width: 16px; height: 16px; }
+
+/* Two-column layout */
+.wd-home-body { display: flex; padding: 0; gap: 0; }
+.wd-home-left { flex: 1; padding: 20px 24px; min-width: 0; }
+.wd-home-right { width: 300px; padding: 20px 16px; flex-shrink: 0; border-left: 1px solid #e8e8e8; }
+
+/* Sana section */
+.sana-section {
+  background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px;
+  border: 1px solid #e8e8e8; position: relative;
+}
+.sana-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.sana-header .sana-gear {
+  width: 24px; height: 24px; background: #333; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.sana-header .sana-gear svg { width: 14px; height: 14px; color: #fff; }
+.sana-header .sana-title { font-size: 18px; font-weight: 600; color: #242424; }
+
+.sana-input-wrapper {
+  border: 2px solid #b8d4f0; border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px; cursor: pointer; background: #fff;
+  transition: border-color 0.2s;
+}
+.sana-input-wrapper:hover { border-color: #80b0e0; }
+.sana-input-wrapper .input-icon { color: #999; font-size: 14px; }
+.sana-input-wrapper .input-placeholder { color: #999; font-size: 13px; flex: 1; }
+.sana-input-wrapper .input-cursor {
+  width: 2px; height: 18px; background: #242424; animation: blink 0.8s infinite;
+}
+
+/* Suggested Prompts */
+.suggested-label { font-size: 12px; color: #666; margin: 12px 0 8px 0; }
+.suggested-pills { display: flex; gap: 8px; flex-wrap: nowrap; }
+.suggested-pill {
+  padding: 6px 14px; border: 1px solid #d0d0d0; border-radius: 16px;
+  font-size: 12px; color: #242424; cursor: pointer; background: #fff;
+  transition: all 0.15s; white-space: nowrap;
+}
+.suggested-pill:hover { border-color: var(--workday-blue); color: var(--workday-blue); background: #f0f5ff; }
+
+/* Daily Brief */
+.daily-brief-section { background: #fff; border-radius: 8px; padding: 20px; border: 1px solid #e8e8e8; }
+.daily-brief-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.daily-brief-header .db-left { display: flex; align-items: center; gap: 8px; }
+.daily-brief-header .db-left .db-icon {
+  width: 24px; height: 24px; background: #333; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.daily-brief-header .db-left .db-icon svg { width: 14px; height: 14px; color: #fff; }
+.daily-brief-header .db-title { font-size: 16px; font-weight: 600; }
+.daily-brief-header .db-count { font-size: 12px; color: #666; }
+
+.db-section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.db-section-title a { font-size: 12px; color: var(--workday-blue); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+
+.db-task {
+  padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+}
+.db-task:last-child { border-bottom: none; }
+.db-task-link { color: var(--workday-blue); font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.db-task-meta { font-size: 12px; color: #666; margin-top: 3px; }
+.db-task-meta strong { color: #242424; }
+.db-task-actions { display: flex; gap: 8px; margin-top: 8px; }
+.db-task-row { display: flex; align-items: flex-start; justify-content: space-between; }
+
+/* Approve/Deny buttons (Home view uses Deny) */
+.btn-approve-home {
+  padding: 6px 20px; border-radius: 4px; font-size: 13px; font-weight: 600;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
+}
+.btn-deny-home {
+  padding: 6px 20px; border-radius: 4px; font-size: 13px; font-weight: 600;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
+}
+
+/* Update section */
+.db-update-title { font-size: 15px; font-weight: 600; margin-top: 16px; margin-bottom: 12px; }
+.db-update-item { font-size: 13px; color: #242424; }
+.db-update-item .update-title { font-weight: 600; margin-bottom: 2px; }
+.db-update-item .update-desc { color: #666; font-size: 12px; }
+.btn-create-expense {
+  padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 600;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0; margin-top: 8px;
+}
+.db-action-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+.db-action-item:last-child { border-bottom: none; }
+.db-action-text { font-size: 13px; color: #242424; display: flex; align-items: flex-start; gap: 8px; }
+.db-action-text::before { content: '●'; color: #333; font-size: 8px; margin-top: 5px; flex-shrink: 0; }
+.db-action-source { font-size: 12px; color: var(--workday-blue); text-decoration: none; display: flex; align-items: center; gap: 4px; margin-top: 3px; margin-left: 16px;
+}
+
+/* ===== CALENDAR SIDEBAR ===== */
+.calendar-section { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #e8e8e8; margin-bottom: 16px; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-header .cal-title { font-size: 14px; font-weight: 600; }
+.cal-toggle { display: flex; border: 1px solid #d0d0d0; border-radius: 4px; overflow: hidden; }
+.cal-toggle-btn { padding: 4px 12px; font-size: 11px; cursor: default; border: none; background: #fff; color: #666; }
+.cal-toggle-btn.active { background: var(--workday-blue); color: #fff; }
+.cal-month-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cal-month-nav .cal-month { font-size: 13px; font-weight: 600; flex: 1; text-align: center; }
+.cal-month-nav .cal-arrow { color: #666; cursor: default; font-size: 14px; padding: 2px 6px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 0; text-align: center; font-size: 11px; }
+.cal-grid .cal-day-header { font-weight: 600; color: #666; padding: 4px 0; font-size: 10px; }
+.cal-grid .cal-day { padding: 6px 2px; color: #242424; position: relative; }
+.cal-grid .cal-day.today { color: var(--workday-blue); font-weight: 700; }
+.cal-grid .cal-day.muted { color: #ccc; }
+.cal-dot { width: 6px; height: 6px; border-radius: 50%; margin: 1px auto 0; }
+.cal-dot.blue { background: #4a90d9; }
+.cal-dot.purple { background: #9b59b6; }
+.cal-dot.orange { background: #e67e22; }
+.cal-dot.red { background: #e74c3c; }
+.cal-bar { height: 4px; border-radius: 2px; background: #4a90d9; margin: 1px 0 0; }
+
+/* Important Dates */
+.important-dates { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #e8e8e8; }
+.important-dates h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.id-category { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; cursor: default; }
+.id-category .id-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.id-category .id-icon { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.id-category .id-chevron { color: #999; font-size: 14px; }
+.id-detail { padding: 6px 0 6px 18px; font-size: 12px; color: #666; }
+.id-detail .id-date { color: #e74c3c; font-weight: 600; margin-right: 8px; }
+
+/* ===== CHAT VIEW ===== */
+.chat-container {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px; background: var(--chat-bg);
+}
+
+.chat-msg { display: flex; gap: 10px; max-width: 80%; }
+.chat-msg.new-msg { animation: msgSlideIn 0.35s ease; }
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg.bot { align-self: flex-start; }
+
+.chat-avatar-wrap { position: relative; flex-shrink: 0; width: 36px; height: 36px; }
+.chat-avatar { width: 32px; height: 32px; flex-shrink: 0; }
+.chat-avatar.hex {
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  width: 36px; height: 36px; background: var(--workday-navy);
+  display: flex; align-items: center; justify-content: center;
+}
+.avatar-badge {
+  position: absolute; bottom: 0; right: -2px; width: 14px; height: 14px;
+  background: #2ea44f; border-radius: 50%; border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px; color: #fff; font-weight: 700; line-height: 1;
+}
+
+.chat-bubble {
+  padding: 10px 14px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #242424;
+}
+.chat-msg.user .chat-bubble { background: var(--user-msg-bg); border-radius: 6px 2px 6px 6px; }
+.chat-msg.bot .chat-bubble { background: var(--bot-msg-bg); border: 1px solid #e0e0e0; border-radius: 2px 6px 6px 6px; }
+
+.chat-bubble ul, .chat-bubble ol { margin: 6px 0 6px 18px; }
+.chat-bubble li { margin-bottom: 3px; }
+.chat-bubble strong { font-weight: 600; }
+.chat-bubble p { margin-bottom: 6px; }
+.chat-bubble p:last-child { margin-bottom: 0; }
+
+.bot-label {
+  font-size: 12px; color: #616161; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.chat-time { font-size: 11px; color: #999; margin-top: 3px; }
+.chat-msg.user .chat-time { text-align: right; }
+.chat-msg.bot .chat-time { text-align: left; }
+
+/* Approve/Reject buttons (Chat view) */
+.action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+.btn-approve {
+  padding: 6px 22px; border-radius: 4px; font-size: 13px; font-weight: 600;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
+  transition: background 0.2s;
+}
+.btn-approve:hover { background: #f0f0f0; }
+.btn-reject {
+  padding: 6px 22px; border-radius: 4px; font-size: 13px; font-weight: 600;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
+  transition: background 0.2s;
+}
+.btn-reject:hover { background: #f5f5f5; }
+.action-buttons.decided button { pointer-events: none; opacity: 0.6; }
+.action-buttons.decided .btn-approve.clicked { background: var(--workday-blue); color: #fff; border-color: var(--workday-blue); opacity: 1; }
+
+/* Powered by Sana */
+.powered-by-sana {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; color: #888;
+}
+.sana-icon-circle {
+  width: 16px; height: 16px; background: #333; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.feedback-thumbs { display: flex; gap: 6px; margin-top: 6px; }
+.feedback-thumbs button {
+  background: #fff; border: 1px solid #d8d8d8; border-radius: 4px;
+  width: 30px; height: 28px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; color: #555; transition: all 0.15s; padding: 0;
+}
+.feedback-thumbs button:hover { background: #f5f5f5; border-color: #999; }
+.feedback-thumbs button svg { width: 14px; height: 14px; }
+.feedback-thumbs button.active { background: var(--workday-blue); border-color: var(--workday-blue); color: #fff; }
+.feedback-confirmed { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: #666; }
+.feedback-confirmed svg { flex-shrink: 0; }
+
+/* Feedback popup */
+.feedback-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.feedback-popup { background: #fff; border-radius: 8px; padding: 20px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.fp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.fp-header strong { font-size: 15px; }
+.fp-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #666; }
+.fp-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.fp-options label { font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.fp-options input[type="checkbox"] { accent-color: var(--workday-blue); }
+.fp-comment { width: 100%; border: 1px solid #d0d0d0; border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+.fp-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.fp-cancel { padding: 6px 16px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; }
+.fp-submit { padding: 6px 16px; border-radius: 4px; border: none; background: var(--workday-blue); color: #fff; cursor: pointer; font-size: 13px; }
+
+/* Chat input bar */
+.chat-input-bar {
+  height: 50px; border-top: 1px solid #e0e0e0; display: flex; align-items: center;
+  padding: 0 16px; gap: 10px; background: #fff; flex-shrink: 0;
+}
+.chat-input-bar input {
+  flex: 1; border: none; outline: none; font-size: 13px; color: #242424;
+  font-family: var(--font); background: transparent;
+}
+.chat-input-bar input::placeholder { color: #999; }
+.chat-input-bar .input-actions { display: flex; gap: 10px; color: #666; font-size: 16px; }
+.chat-input-bar .input-actions span { cursor: pointer; opacity: 0.6; transition: opacity 0.15s; }
+.chat-input-bar .input-actions span:hover { opacity: 1; }
+.chat-input-bar .input-actions .send-btn { color: var(--workday-blue); opacity: 0.8; }
+
+/* ===== DROPDOWN (Recent Chats) ===== */
+.dropdown-overlay {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+  background: #fff; border: 1px solid #e0e0e0; border-top: none;
+  border-radius: 0 0 8px 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  animation: dropdownSlide 0.25s ease;
+}
+.dropdown-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid #f0f0f0;
+}
+.dropdown-header .dh-title { font-size: 12px; font-weight: 600; color: #242424; }
+.dropdown-header .dh-clear { font-size: 12px; color: var(--workday-blue); cursor: pointer; text-decoration: none; }
+.dropdown-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  cursor: pointer; font-size: 13px; color: #242424; border-bottom: 1px solid #f8f8f8;
+  transition: background 0.15s;
+}
+.dropdown-item:hover { background: #f5f5f5; }
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item .di-icon { color: #999; font-size: 16px; flex-shrink: 0; }
+
+/* ===== TYPING INDICATOR ===== */
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.typing-indicator span {
+  display: inline-block; width: 7px; height: 7px;
+  background: #999; border-radius: 50%;
+  animation: typingBounce 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ===== JOURNEY COMPLETE CHIPS ===== */
+.journey-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding: 12px 0; }
+.journey-chips .suggested-pill { animation: fadeIn 0.4s ease; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes msgSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes dropdownSlide { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SVG ICON DEFINITIONS ===== -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Workday Logo (precise: navy rounded rect, orange arc, white W) -->
+  <symbol id="wd-logo" viewBox="0 0 100 100">
+    <rect width="100" height="100" rx="20" fill="#1b3a5c"/>
+    <path d="M28 40 Q38 24 50 24 Q62 24 72 40" stroke="#f5842b" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <text x="50" y="74" text-anchor="middle" fill="#fff" font-size="40" font-weight="700" font-family="Segoe UI,sans-serif">W</text>
+  </symbol>
+  <!-- Sana four-circle logo -->
+  <symbol id="sana-logo" viewBox="0 0 100 100">
+    <circle cx="50" cy="18" r="15" fill="currentColor"/>
+    <circle cx="50" cy="82" r="15" fill="currentColor"/>
+    <circle cx="18" cy="50" r="15" fill="currentColor"/>
+    <circle cx="82" cy="50" r="15" fill="currentColor"/>
+    <line x1="50" y1="33" x2="50" y2="46" stroke="currentColor" stroke-width="3" opacity="0.4"/>
+    <line x1="50" y1="54" x2="50" y2="67" stroke="currentColor" stroke-width="3" opacity="0.4"/>
+    <line x1="33" y1="50" x2="46" y2="50" stroke="currentColor" stroke-width="3" opacity="0.4"/>
+    <line x1="54" y1="50" x2="67" y2="50" stroke="currentColor" stroke-width="3" opacity="0.4"/>
+    <circle cx="50" cy="50" r="4" fill="currentColor"/>
+  </symbol>
+  <!-- Simple sidebar icons -->
+  <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-people" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="icon-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="1.8"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="icon-apps" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="icon-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-external" viewBox="0 0 16 16"><path d="M5 3h8v8M13 3L5 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Chat bubble outline for dropdown -->
+  <symbol id="icon-chat-outline" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Thumbs up (outline) -->
+  <symbol id="icon-thumb-up" viewBox="0 0 24 24"><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3m7-2V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Thumbs down (outline) -->
+  <symbol id="icon-thumb-down" viewBox="0 0 24 24"><path d="M17 2H20a2 2 0 012 2v7a2 2 0 01-2 2h-3m-7 2v4a3 3 0 003 3l4-9V2H6.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Check circle (for feedback confirmed) -->
+  <symbol id="icon-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div id="app"></div>
+
+<script>
+// ===== INLINE CONFIG =====
+const CONFIG = {
+  meta: {
+    title: "Workday Everywhere",
+    subtitle: "Powered by Sana",
+  },
+  journeys: [
+    { id: "j1", title: "Time Off Planning", description: "Check balance, policy & holidays", icon: "🏖️" },
+    { id: "j2", title: "Life Event Update", description: "Marriage & address change", icon: "💍" },
+    { id: "j3", title: "Strategic PTO", description: "Optimize your time off", icon: "📅" },
+    { id: "j4", title: "Payroll Issue", description: "Report a discrepancy", icon: "💰" },
+  ],
+  recentChats: [
+    { text: "I want to take a two-week vacation starting February 10th", goTo: "j1" },
+    { text: "I recently got married and need to update my info", goTo: "j2" },
+    { text: "Help me plan my time off this year", goTo: "j3" },
+    { text: "My hourly rate seems wrong on my last paycheck", goTo: "j4" }
+  ],
+  suggestedPills: [
+    { label: "Time off balance", journey: "j1" },
+    { label: "Life event", journey: "j2" },
+    { label: "PTO planning", journey: "j3" },
+    { label: "Payroll issue", journey: "j4" },
+  ],
+};
+
+// ===== JOURNEY SCRIPTS (extracted from old step-based config) =====
+CONFIG.journeyScripts = {
+  j1: [
+    {
+      userText: "I want to take a two-week vacation starting February 10th. Do I have enough accrued time off to cover 10 days, and what is our policy regarding carrying over unused vacation time into the new year?",
+      botResponse: { text: "<p>Your current accrued time off balance is <strong>15 days</strong>. Yes, you have enough time to cover the 10 days for your two-week vacation starting February 10th.</p><p>Regarding the policy on carrying over unused vacation time, you are permitted to carry over a maximum of <strong>5 unused vacation days</strong> into the new year. These days must be used by March 31st of the new year, or they will be forfeited.</p>", showFeedback: true }
+    },
+    {
+      userText: "Thanks, are there any company holidays I could use during this time?",
+      botResponse: { text: "<p>I checked the company calendar, and I could not find any company holidays scheduled between <strong>February 10th and February 23rd</strong>.</p>", showFeedback: true }
+    }
+  ],
+  j2: [
+    {
+      userText: "I recently got married and need to update my marital status and address to 3350 Peachtree Rd NE Unit 100, Atlanta, GA.",
+      botResponse: { text: "<p>I can help you update your marital status and primary address! What is the postal code for your new address?</p>", showFeedback: true }
+    },
+    {
+      userText: "Zip code is 30326.",
+      botResponse: {
+        text: "<p>Thank You. Please confirm to update your Marital Status to <strong>Married</strong> and your primary address to the following:</p><p><strong>Address Line 1:</strong> 3350 Peachtree Rd, NE<br><strong>Address Line 2:</strong> Unit 100<br><strong>City:</strong> Atlanta<br><strong>State/Province:</strong> GA<br><strong>Postal Code:</strong> 30326<br><strong>Country:</strong> USA</p><p>Since this is a <strong>Qualifying Life Event (QLE)</strong>, you will have 60 days from your marriage date to enroll or update your health benefits coverage.</p><p>Proceed with the update?</p>",
+        showFeedback: true, showApproveReject: true,
+        approveResponse: { text: "<p>Your marital status and address has been updated successfully.</p>", showFeedback: true }
+      }
+    }
+  ],
+  j3: [
+    {
+      userText: "I'd like help to effectively use my time off this year based on company holidays and my PTO allocation. Note: I have 27 days for the year, 3 carry-over days to use by March, and a sabbatical planned for July 13th - Sept 1st.",
+      botResponse: { text: "<p>Here's a plan to help you effectively use your time off this year:</p><p><strong>Company Holidays for 2026</strong></p><ul><li>New Year's Day: January 1, 2026</li><li>President's Day: February 16, 2026</li><li>Memorial Day: May 25, 2026</li><li>Independence Day: July 4, 2026</li><li>Labor Day: September 7, 2026</li><li>Thanksgiving: November 26, 2026</li><li>Day After Thanksgiving: November 27, 2026</li><li>Christmas: December 25, 2026</li></ul><p><strong>Recommendations for Optimized Time Off Strategy</strong></p><ul><li><strong>Prioritize Carry-Over Days:</strong> Use your 3 carry-over days in February or March to avoid losing them. Example: Take PTO on the Monday before President's Day (Feb 16) for a 4-day weekend.</li><li><strong>Leverage Company Holidays:</strong> Use your 27 PTO days to extend company holidays into longer breaks. Example: Take 3 PTO days (Mon-Wed) before Thanksgiving for a full week off.</li><li><strong>Enjoy Your Sabbatical:</strong> Your long break from July 13 - Sept 1 is separate from your PTO.</li></ul><p>This approach helps you maximize your time away by strategically combining your PTO with company-provided days off.</p>", showFeedback: true }
+    },
+    {
+      userText: "Let's submit a time off request for Presidents Day week to use my carry-over PTO balance.",
+      botResponse: {
+        text: "<p>President's Day is on Monday, February 16, 2026, which is a company holiday. To maximize your time off using your carry-over days, I suggest a request for <strong>3 working days</strong> (February 13, February 17, and February 18, 2026).</p><p>Does this plan look good to you?</p>",
+        showFeedback: true, showApproveReject: true,
+        approveResponse: { text: "<p>I've submitted your time off request!</p><p>Here are the details:<br><strong>Type:</strong> Carryover Expiration Time Off<br><strong>Dates:</strong> February 13, 2026, February 17, 2026, and February 18, 2026<br><strong>Status:</strong> Submitted and In Progress</p><p>Your request is now pending approval. You can view the status of your request in Workday.</p>", showFeedback: true }
+      }
+    }
+  ],
+  j4: [
+    {
+      userText: "I have an issue with my pay.",
+      botResponse: { text: "<p>What is the specific category for your pay issue? Please choose one of the following:</p><ul><li>Payroll Discrepancy</li><li>Tax Withholding Issue</li><li>Bonus/Incentive Pay.</li></ul>", showFeedback: true }
+    },
+    {
+      userText: "It's a payroll discrepancy. My hourly rate seems wrong on my last paycheck.",
+      botResponse: {
+        text: "<p>I'll create a case for payroll discrepancy related and include the information that your hourly rate seemed wrong in your last paycheck.</p><p>Does this sound like a good plan to you?</p>",
+        showFeedback: true, showApproveReject: true,
+        approveResponse: { text: "<p>Your payroll discrepancy case has been created successfully.</p><p><strong>Case Number:</strong> PAY-2026-04182<br><strong>Category:</strong> Payroll Discrepancy<br><strong>Status:</strong> Open<br><strong>Details:</strong> Hourly rate appears incorrect on most recent paycheck</p><p>You'll receive updates via Workday as your case is reviewed by the payroll team.</p>", showFeedback: true }
+      }
+    }
+  ]
+};
+
+// ===== APP STATE =====
+const appState = {
+  currentView: 'title',
+  activeJourney: null,
+  chatMessages: [],
+  scriptQueue: [],
+  isTyping: false,
+  dropdownOpen: false,
+  pendingApproveResponse: null,
+};
+
+// ===== HELPERS =====
+const $ = sel => document.querySelector(sel);
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ===== SHARED UI COMPONENTS =====
+function renderTeamsTopbar() {
+  return `
+    <div class="teams-topbar">
+      <div class="window-controls">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+      </div>
+      <div class="nav-arrows"><span>‹</span><span>›</span></div>
+      <div class="search-box">🔍 Search</div>
+      <div class="topbar-right">
+        <span class="topbar-dots">⋯</span>
+        <div class="avatar">SJ</div>
+        <div class="window-btns"><span>—</span><span>□</span><span>✕</span></div>
+      </div>
+    </div>`;
+}
+
+function renderSidebar(activeId) {
+  const items = [
+    { id: 'activity', icon: 'icon-bell', label: 'Activity' },
+    { id: 'chat', icon: 'icon-chat', label: 'Chat' },
+    { id: 'teams', icon: 'icon-people', label: 'Teams' },
+    { id: 'calls', icon: 'icon-phone', label: 'Calls' },
+    { id: 'onedrive', icon: 'icon-cloud', label: 'OneDrive' },
+    { id: 'calendar', icon: 'icon-calendar', label: 'Calendar' },
+    { id: 'workday', icon: 'wd-logo', label: 'Workday', isLogo: true },
+  ];
+  const bottom = [
+    { id: 'more', icon: 'icon-more', label: '···' },
+    { id: 'apps', icon: 'icon-apps', label: 'Apps' },
+  ];
+  return `
+    <div class="teams-sidebar">
+      ${items.map(i => `
+        <div class="sidebar-item ${i.id === activeId ? 'active' : ''}">
+          <svg width="20" height="20"${i.isLogo ? ' style="width:24px;height:24px"' : ''}><use href="#${i.icon}"/></svg>
+          <span class="sidebar-label">${i.label}</span>
+        </div>
+      `).join('')}
+      <div style="flex:1"></div>
+      ${bottom.map(i => `
+        <div class="sidebar-item">
+          <svg width="20" height="20"><use href="#${i.icon}"/></svg>
+          <span class="sidebar-label">${i.label}</span>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+function renderWdNavbar(activeTab) {
+  const tabs = ['App', 'Chat', 'Files', 'About'];
+  return `
+    <div class="wd-navbar">
+      <svg class="wd-nav-logo" width="24" height="24"><use href="#wd-logo"/></svg>
+      <span class="wd-nav-title">Workday</span>
+      <div class="wd-nav-tabs">
+        ${tabs.map(t => {
+          const clickable = (t === 'App' || t === 'Chat');
+          const onclick = t === 'App' ? `onclick="switchView('home')"` : t === 'Chat' ? `onclick="switchView('chat')"` : '';
+          return `<span class="wd-nav-tab ${t === activeTab ? 'active' : ''}" ${onclick}>${t}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderHeaderBanner() {
+  return `
+    <div class="wd-header-banner">
+      <div class="wd-header-tab active-home">
+        <svg width="16" height="16"><use href="#icon-home"/></svg>
+        Home
+      </div>
+      <div class="wd-header-tab">
+        <svg width="16" height="16"><use href="#icon-people"/></svg>
+        My Team
+      </div>
+    </div>`;
+}
+
+function renderSanaSection() {
+  const pills = CONFIG.suggestedPills.map(p =>
+    `<span class="suggested-pill" onclick="handlePillClick('${p.journey}')"><svg width="14" height="14" style="color:#999;vertical-align:-2px;margin-right:4px"><use href="#icon-chat-outline"/></svg>${p.label}</span>`
+  ).join('');
+  return `
+    <div class="sana-section">
+      <div class="sana-header">
+        <div class="sana-gear"><svg width="14" height="14" style="color:#fff"><use href="#sana-logo"/></svg></div>
+        <span class="sana-title">Sana</span>
+      </div>
+      <div style="position:relative">
+        <div class="sana-input-wrapper" id="sana-input" onclick="toggleDropdown()">
+          <span class="input-placeholder">Ask a question like "when is open enrollment?"</span>
+        </div>
+        <div id="sana-dropdown" style="display:none"></div>
+      </div>
+      <div class="suggested-label">Suggested Prompts</div>
+      <div class="suggested-pills">${pills}</div>
+    </div>`;
+}
+
+function renderDailyBrief() {
+  return `
+    <div class="daily-brief-section">
+      <div class="daily-brief-header">
+        <div class="db-left">
+          <div class="db-icon"><svg width="14" height="14" style="color:#fff"><use href="#sana-logo"/></svg></div>
+          <span class="db-title">Daily Brief</span>
+        </div>
+        <span class="db-count">Today - 7 items</span>
+      </div>
+
+      <div class="db-section-title">
+        2 Tasks
+        <a href="#">My Tasks in Workday <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+      </div>
+
+      <div class="db-task">
+        <a class="db-task-link" href="#">Weekly Employee Pulse Survey (Peakon) <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+        <div class="db-task-meta"><strong>Due:</strong> Today</div>
+      </div>
+
+      <div class="db-task">
+        <div class="db-task-row">
+          <div>
+            <a class="db-task-link" href="#">Time Off Request for Jessica Bentley <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+            <div class="db-task-meta"><strong>Created:</strong> Today</div>
+            <div class="db-task-meta"><strong>Dates:</strong> Monday, February 23 (8 hrs)</div>
+            <div class="db-task-meta"><strong>Type:</strong> Vacation</div>
+          </div>
+          <div class="db-task-actions" style="margin-left:16px;margin-top:8px;">
+            <button class="btn-approve-home">Approve</button>
+            <button class="btn-deny-home">Deny</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-update-title">1 Update</div>
+      <div class="db-update-item">
+        <div class="update-title">You Have Credit Card Transactions Ready to Expense</div>
+        <div class="update-desc">Expense 1 open transaction starting from Monday, November 23, 2026</div>
+        <button class="btn-create-expense">Create Expense</button>
+      </div>
+
+      <div class="db-section-title" style="margin-top:18px">
+        Recent Action Items
+      </div>
+      <div class="db-action-item">
+        <div class="db-action-text">Follow up with design team on Q2 roadmap alignment</div>
+        <a class="db-action-source" href="#" onclick="return false">From: Product Sync – Mar 28 <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+      </div>
+      <div class="db-action-item">
+        <div class="db-action-text">Share updated budget forecast with finance by EOW</div>
+        <a class="db-action-source" href="#" onclick="return false">From: Leadership Standup – Mar 27 <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+      </div>
+      <div class="db-action-item">
+        <div class="db-action-text">Schedule 1:1 with Jessica to discuss development goals</div>
+        <a class="db-action-source" href="#" onclick="return false">From: Team Check-in – Mar 26 <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+      </div>
+    </div>`;
+}
+
+function renderCalendarSidebar() {
+  const days = ['S','M','T','W','Th','F','S'];
+  const feb = [
+    [31,null],[2,null],[3,null],[4,null],[5,'blue'],[6,null],[7,null],
+    [8,null],[9,null],[10,'purple'],[11,null],[12,null],[13,null],[14,null],
+    [15,null],[16,'orange',true],[17,null],[18,null],[19,null],[20,'red'],[21,null],
+    [22,null],[23,'blue-bar'],[24,'blue-bar'],[25,'blue-bar'],[26,'blue-bar'],[27,null],[28,null]
+  ];
+  return `
+    <div class="calendar-section">
+      <div class="cal-header">
+        <span class="cal-title">My Calendar</span>
+        <div class="cal-toggle">
+          <button class="cal-toggle-btn">Week</button>
+          <button class="cal-toggle-btn active">Month</button>
+        </div>
+      </div>
+      <div class="cal-month-nav">
+        <span class="cal-arrow">‹</span>
+        <span class="cal-month">February 2026 ▾</span>
+        <span class="cal-arrow">›</span>
+      </div>
+      <div class="cal-grid">
+        ${days.map(d => `<div class="cal-day-header">${d}</div>`).join('')}
+        ${feb.map(([num, dot, today]) => `
+          <div class="cal-day ${num === 31 ? 'muted' : ''} ${today ? 'today' : ''}">
+            ${num}
+            ${dot === 'blue' ? '<div class="cal-dot blue"></div>' : ''}
+            ${dot === 'purple' ? '<div class="cal-dot purple"></div>' : ''}
+            ${dot === 'orange' ? '<div class="cal-dot orange"></div>' : ''}
+            ${dot === 'red' ? '<div class="cal-dot red"></div>' : ''}
+            ${dot === 'blue-bar' ? '<div class="cal-bar"></div>' : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="important-dates">
+      <h4>Important Dates</h4>
+      <div class="id-category">
+        <div class="id-left"><div class="id-icon" style="background:#e74c3c"></div> Due dates</div>
+        <span class="id-chevron">▲</span>
+      </div>
+      <div class="id-detail"><span class="id-date">Feb 20</span> Health and Safety Training 2026</div>
+      <div class="id-category">
+        <div class="id-left"><div class="id-icon" style="background:#4a90d9"></div> Time off and absence</div>
+        <span class="id-chevron">▼</span>
+      </div>
+      <div class="id-category">
+        <div class="id-left"><div class="id-icon" style="background:#e67e22"></div> Holidays</div>
+        <span class="id-chevron">▼</span>
+      </div>
+      <div class="id-category">
+        <div class="id-left"><div class="id-icon" style="background:#9b59b6"></div> Celebrations</div>
+        <span class="id-chevron">▼</span>
+      </div>
+    </div>`;
+}
+
+// ===== MESSAGE RENDERERS =====
+function renderBotMessage(msg, idx) {
+  const approveReject = msg.showApproveReject ? `
+    <div class="action-buttons${msg.decided ? ' decided' : ''}" data-msg-idx="${idx}">
+      <button class="btn-approve${msg.decided === 'approve' ? ' clicked' : ''}" onclick="handleApprove(${idx})">Approve</button>
+      <button class="btn-reject${msg.decided === 'reject' ? ' clicked' : ''}" onclick="handleReject(${idx})">Reject</button>
+    </div>` : '';
+
+  let feedback = '';
+  if (msg.showFeedback) {
+    const poweredBy = `<div class="powered-by-sana">
+      <div class="sana-icon-circle"><svg width="10" height="10" viewBox="0 0 100 100" style="color:#fff"><use href="#sana-logo"/></svg></div>
+      <span>Powered by Sana. This content was generated by AI. Review before use.</span>
+    </div>`;
+    if (msg.thumbFeedback) {
+      feedback = `${poweredBy}
+        <div class="feedback-confirmed">
+          <svg width="16" height="16" style="color:#0a8547"><use href="#icon-check-circle"/></svg>
+          <span>Thanks for your feedback</span>
+        </div>`;
+    } else {
+      feedback = `${poweredBy}
+        <div class="feedback-thumbs" data-msg-idx="${idx}">
+          <button title="Helpful" onclick="handleThumb(${idx},'up')"><svg width="14" height="14"><use href="#icon-thumb-up"/></svg></button>
+          <button title="Not helpful" onclick="handleThumb(${idx},'down')"><svg width="14" height="14"><use href="#icon-thumb-down"/></svg></button>
+        </div>`;
+    }
+  }
+
+  return `
+    <div class="chat-msg bot">
+      <div class="chat-avatar-wrap">
+        <div class="chat-avatar hex">
+          <svg width="20" height="20"><use href="#wd-logo"/></svg>
+        </div>
+        <div class="avatar-badge">✓</div>
+      </div>
+      <div style="min-width:0">
+        <div class="bot-label">
+          <strong>Workday</strong> <span style="color:#999;font-size:11px">9:08 AM</span>
+        </div>
+        <div class="chat-bubble">
+          ${msg.text}
+          ${approveReject}
+          ${feedback}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderUserMessage(msg) {
+  return `
+    <div class="chat-msg user">
+      <div>
+        <div class="chat-time">9:05 AM</div>
+        <div class="chat-bubble">${msg.text}</div>
+      </div>
+    </div>`;
+}
+
+function renderTypingIndicator() {
+  return `
+    <div class="chat-msg bot" id="typing-msg">
+      <div class="chat-avatar-wrap">
+        <div class="chat-avatar hex">
+          <svg width="20" height="20"><use href="#wd-logo"/></svg>
+        </div>
+        <div class="avatar-badge">✓</div>
+      </div>
+      <div style="min-width:0">
+        <div class="bot-label">
+          <strong>Workday</strong> <span style="color:#999;font-size:11px">9:08 AM</span>
+        </div>
+        <div class="chat-bubble">
+          <div class="typing-indicator"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderJourneyChips() {
+  return `
+    <div class="journey-chips">
+      ${CONFIG.suggestedPills.map(p =>
+        `<span class="suggested-pill" onclick="handlePillClick('${p.journey}')"><svg width="14" height="14" style="color:#999;vertical-align:-2px;margin-right:4px"><use href="#icon-chat-outline"/></svg>${p.label}</span>`
+      ).join('')}
+    </div>`;
+}
+
+// ===== VIEW RENDERERS =====
+function renderHome() {
+  const app = $('#app');
+  appState.currentView = 'home';
+  appState.dropdownOpen = false;
+  app.innerHTML = `
+    <div class="stage active">
+      <div class="teams-window">
+        ${renderTeamsTopbar()}
+        <div class="teams-body">
+          ${renderSidebar('workday')}
+          <div class="teams-main">
+            ${renderWdNavbar('App')}
+            <div class="wd-home-content">
+              ${renderHeaderBanner()}
+              <div class="wd-home-body">
+                <div class="wd-home-left">
+                  ${renderSanaSection()}
+                  ${renderDailyBrief()}
+                </div>
+                <div class="wd-home-right">
+                  ${renderCalendarSidebar()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderChatMessages() {
+  const msgs = appState.chatMessages.map((m, i) =>
+    m.role === 'user' ? renderUserMessage(m) : renderBotMessage(m, i)
+  ).join('');
+  const hasActiveApprove = appState.chatMessages.some(m => m.showApproveReject && !m.decided);
+  const journeyDone = !hasActiveApprove && appState.scriptQueue.length === 0 && appState.chatMessages.length > 0 && !appState.isTyping;
+  const chips = journeyDone ? renderJourneyChips() : '';
+  return msgs + chips;
+}
+
+function renderChat() {
+  appState.currentView = 'chat';
+
+  // If chat view already rendered, only update messages (no flicker)
+  const existingScroll = document.getElementById('chat-scroll');
+  if (existingScroll && document.querySelector('.wd-nav-tab.active')?.textContent === 'Chat') {
+    const prevCount = existingScroll.querySelectorAll('.chat-msg').length;
+    existingScroll.innerHTML = renderChatMessages();
+    // Animate only new messages
+    const allMsgs = existingScroll.querySelectorAll('.chat-msg');
+    allMsgs.forEach((msg, i) => { if (i >= prevCount) msg.classList.add('new-msg'); });
+    scrollChat();
+    return;
+  }
+
+  // Full render (first time entering chat)
+  const app = $('#app');
+  app.innerHTML = `
+    <div class="stage active">
+      <div class="teams-window">
+        ${renderTeamsTopbar()}
+        <div class="teams-body">
+          ${renderSidebar('chat')}
+          <div class="teams-main">
+            ${renderWdNavbar('Chat')}
+            <div class="chat-container" id="chat-scroll">
+              ${renderChatMessages()}
+            </div>
+            <div class="chat-input-bar">
+              <input type="text" id="chat-input" placeholder="Type a new message"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();handleChatSend()}" />
+              <div class="input-actions">
+                <span>𝐴</span><span>☺</span><span>＋</span><span class="send-btn" onclick="handleChatSend()">▷</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  scrollChat();
+}
+
+function scrollChat() {
+  const el = document.getElementById('chat-scroll');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+// ===== VIEW SWITCHING =====
+function switchView(view) {
+  if (appState.isTyping) return;
+  if (view === 'home') renderHome();
+  else if (view === 'chat') renderChat();
+}
+
+function showTitle() {
+  appState.currentView = 'title';
+  $('#app').innerHTML = `
+    <div class="title-screen" onclick="startDemo()">
+      <div style="margin-bottom:24px">
+        <svg width="80" height="80" style="filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3))"><use href="#wd-logo"/></svg>
+      </div>
+      <h1>${CONFIG.meta.title}</h1>
+      <h2>${CONFIG.meta.subtitle}</h2>
+      <div class="start-btn">Start Demo</div>
+    </div>`;
+}
+
+function startDemo() {
+  appState.chatMessages = [];
+  appState.scriptQueue = [];
+  appState.activeJourney = null;
+  appState.isTyping = false;
+  appState.pendingApproveResponse = null;
+  renderHome();
+}
+
+// ===== DROPDOWN =====
+function toggleDropdown() {
+  appState.dropdownOpen = !appState.dropdownOpen;
+  const dd = document.getElementById('sana-dropdown');
+  if (!dd) return;
+  if (appState.dropdownOpen) {
+    dd.style.display = 'block';
+    dd.className = 'dropdown-overlay';
+    dd.innerHTML = `
+      <div class="dropdown-header">
+        <span class="dh-title">Recent Chats</span>
+        <span class="dh-clear" onclick="event.stopPropagation();appState.dropdownOpen=false;document.getElementById('sana-dropdown').style.display='none'">Clear History</span>
+      </div>
+      ${CONFIG.recentChats.map(c => `
+        <div class="dropdown-item" onclick="event.stopPropagation();startJourney('${c.goTo}')">
+          <svg class="di-icon" width="18" height="18"><use href="#icon-chat-outline"/></svg>
+          <span>${c.text}</span>
+        </div>
+      `).join('')}`;
+  } else {
+    dd.style.display = 'none';
+  }
+}
+
+// ===== PILL CLICK =====
+function handlePillClick(journeyId) {
+  if (!journeyId || !CONFIG.journeyScripts[journeyId]) {
+    appState.chatMessages.push({
+      role: 'bot',
+      text: `<strong>Here are some resources that might help:</strong><br><br>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="#" onclick="return false" style="color:var(--workday-blue);text-decoration:none;font-size:13px">View Tax Documents in Workday &#8594;</a>
+          <a href="#" onclick="return false" style="color:var(--workday-blue);text-decoration:none;font-size:13px">Payslip &amp; Compensation Hub &#8594;</a>
+          <a href="#" onclick="return false" style="color:var(--workday-blue);text-decoration:none;font-size:13px">Benefits &amp; Open Enrollment &#8594;</a>
+          <a href="#" onclick="return false" style="color:var(--workday-blue);text-decoration:none;font-size:13px">Workday Help Center &#8594;</a>
+        </div>`,
+      showFeedback: true,
+    });
+    switchView('chat');
+    renderChat();
+    return;
+  }
+  startJourney(journeyId);
+}
+
+// ===== JOURNEY & TYPING ENGINE =====
+async function startJourney(journeyId) {
+  if (appState.isTyping) return;
+  const script = CONFIG.journeyScripts[journeyId];
+  if (!script) return;
+
+  appState.activeJourney = journeyId;
+  appState.chatMessages = [];
+  appState.pendingApproveResponse = null;
+  appState.scriptQueue = script.map(e => ({...e}));
+
+  await playNextExchange();
+}
+
+async function playNextExchange() {
+  if (appState.scriptQueue.length === 0) {
+    renderChat();
+    return;
+  }
+
+  appState.isTyping = true;
+  const exchange = appState.scriptQueue.shift();
+
+  // Switch to chat view
+  appState.currentView = 'chat';
+  renderChat();
+  await delay(300);
+
+  // Type user message in input (animate first 40 chars, then fill rest)
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.focus();
+    const typedChars = Math.min(40, exchange.userText.length);
+    for (let i = 0; i <= typedChars; i++) {
+      if (document.getElementById('chat-input')) {
+        document.getElementById('chat-input').value = exchange.userText.slice(0, i);
+      }
+      await delay(25);
+    }
+    // Fill the rest instantly
+    if (document.getElementById('chat-input')) {
+      document.getElementById('chat-input').value = exchange.userText;
+    }
+    await delay(300);
+    if (document.getElementById('chat-input')) {
+      document.getElementById('chat-input').value = '';
+    }
+  }
+
+  // Add user message
+  appState.chatMessages.push({ role: 'user', text: exchange.userText });
+  renderChat();
+  await delay(200);
+
+  // Show typing indicator
+  const chatEl = document.getElementById('chat-scroll');
+  if (chatEl) {
+    chatEl.insertAdjacentHTML('beforeend', renderTypingIndicator());
+    scrollChat();
+  }
+  await delay(1000 + Math.random() * 500);
+
+  // Remove typing indicator and add bot response
+  const typingMsg = document.getElementById('typing-msg');
+  if (typingMsg) typingMsg.remove();
+
+  const botMsg = {
+    role: 'bot',
+    text: exchange.botResponse.text,
+    showFeedback: exchange.botResponse.showFeedback || false,
+    showApproveReject: exchange.botResponse.showApproveReject || false,
+  };
+  appState.chatMessages.push(botMsg);
+
+  if (exchange.botResponse.approveResponse) {
+    appState.pendingApproveResponse = exchange.botResponse.approveResponse;
+  }
+
+  appState.isTyping = false;
+  renderChat();
+
+  // If no approve/reject needed and more exchanges, auto-continue after pause
+  if (!exchange.botResponse.showApproveReject && appState.scriptQueue.length > 0) {
+    // Wait for user to initiate next exchange (via typing or clicking)
+  }
+}
+
+// ===== CHAT SEND =====
+async function handleChatSend() {
+  if (appState.isTyping) return;
+  const input = document.getElementById('chat-input');
+  if (input) input.value = '';
+
+  // If there's a pending exchange in the queue, play it
+  if (appState.scriptQueue.length > 0) {
+    await playNextExchange();
+  }
+}
+
+// ===== APPROVE / REJECT =====
+async function handleApprove(msgIdx) {
+  if (appState.isTyping) return;
+  const msg = appState.chatMessages[msgIdx];
+  if (!msg || msg.decided) return;
+
+  msg.decided = 'approve';
+  renderChat();
+
+  if (appState.pendingApproveResponse) {
+    appState.isTyping = true;
+    await delay(400);
+
+    const chatEl = document.getElementById('chat-scroll');
+    if (chatEl) {
+      chatEl.insertAdjacentHTML('beforeend', renderTypingIndicator());
+      scrollChat();
+    }
+    await delay(800);
+
+    const typingMsg = document.getElementById('typing-msg');
+    if (typingMsg) typingMsg.remove();
+
+    appState.chatMessages.push({
+      role: 'bot',
+      text: appState.pendingApproveResponse.text,
+      showFeedback: appState.pendingApproveResponse.showFeedback || false,
+    });
+    appState.pendingApproveResponse = null;
+    appState.isTyping = false;
+    renderChat();
+  }
+}
+
+function handleReject(msgIdx) {
+  const msg = appState.chatMessages[msgIdx];
+  if (!msg || msg.decided) return;
+  msg.decided = 'reject';
+  appState.pendingApproveResponse = null;
+  appState.scriptQueue = [];
+  renderChat();
+}
+
+// ===== THUMBS FEEDBACK =====
+let feedbackTargetIdx = null;
+
+function handleThumb(msgIdx, direction) {
+  const msg = appState.chatMessages[msgIdx];
+  if (!msg || msg.thumbFeedback) return;
+
+  if (direction === 'up') {
+    msg.thumbFeedback = 'up';
+    renderChat();
+  } else {
+    feedbackTargetIdx = msgIdx;
+    document.getElementById('feedbackPopup').style.display = 'flex';
+  }
+}
+
+function closeFeedbackPopup(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('feedbackPopup').style.display = 'none';
+  feedbackTargetIdx = null;
+  document.querySelectorAll('#feedbackPopup input[type="checkbox"]').forEach(cb => cb.checked = false);
+  const comment = document.querySelector('#feedbackPopup .fp-comment');
+  if (comment) comment.value = '';
+}
+
+function submitNegativeFeedback() {
+  if (feedbackTargetIdx !== null) {
+    const msg = appState.chatMessages[feedbackTargetIdx];
+    if (msg) msg.thumbFeedback = 'down';
+  }
+  document.getElementById('feedbackPopup').style.display = 'none';
+  feedbackTargetIdx = null;
+  document.querySelectorAll('#feedbackPopup input[type="checkbox"]').forEach(cb => cb.checked = false);
+  const comment = document.querySelector('#feedbackPopup .fp-comment');
+  if (comment) comment.value = '';
+  renderChat();
+}
+
+// ===== KEYBOARD NAV =====
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') showTitle();
+});
+
+// ===== INIT =====
+showTitle();
+</script>
+
+<div class="feedback-popup-overlay" id="feedbackPopup" style="display:none" onclick="closeFeedbackPopup(event)">
+  <div class="feedback-popup" onclick="event.stopPropagation()">
+    <div class="fp-header">
+      <strong>What went wrong?</strong>
+      <button class="fp-close" onclick="closeFeedbackPopup()">&times;</button>
+    </div>
+    <div class="fp-options">
+      <label><input type="checkbox" value="incorrect"> Incorrect information</label>
+      <label><input type="checkbox" value="irrelevant"> Not relevant to my question</label>
+      <label><input type="checkbox" value="verbose"> Response was too long</label>
+      <label><input type="checkbox" value="unclear"> Hard to understand</label>
+      <label><input type="checkbox" value="other"> Other</label>
+    </div>
+    <textarea class="fp-comment" placeholder="Additional comments (optional)" rows="3"></textarea>
+    <div class="fp-actions">
+      <button class="fp-cancel" onclick="closeFeedbackPopup()">Cancel</button>
+      <button class="fp-submit" onclick="submitNegativeFeedback()">Submit</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

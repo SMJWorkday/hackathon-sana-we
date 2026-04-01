@@ -292,6 +292,17 @@ body {
 .id-detail { padding: 6px 0 6px 18px; font-size: 12px; color: #666; }
 .id-detail .id-date { color: #e74c3c; font-weight: 600; margin-right: 8px; }
 
+/* ===== YOUR MEETINGS ===== */
+.your-meetings { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #e8e8e8; margin-top: 16px; }
+.your-meetings h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.meeting-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.meeting-item:last-child { border-bottom: none; }
+.meeting-time { font-size: 12px; color: #666; white-space: nowrap; min-width: 60px; padding-top: 1px; }
+.meeting-info { flex: 1; min-width: 0; }
+.meeting-title { font-size: 13px; font-weight: 600; color: #242424; }
+.meeting-summary-link { font-size: 12px; color: var(--workday-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; }
+.meeting-summary-link:hover { text-decoration: underline; }
+
 /* ===== CHAT VIEW ===== */
 .chat-container {
   flex: 1; overflow-y: auto; padding: 20px 24px;
@@ -811,6 +822,37 @@ function renderCalendarSidebar() {
       <div class="id-category">
         <div class="id-left"><div class="id-icon" style="background:#9b59b6"></div> Celebrations</div>
         <span class="id-chevron">▼</span>
+      </div>
+    </div>
+    <div class="your-meetings">
+      <h4>Your Meetings</h4>
+      <div class="meeting-item">
+        <div class="meeting-time">9:00 AM</div>
+        <div class="meeting-info">
+          <div class="meeting-title">Product Sync</div>
+          <a class="meeting-summary-link" href="#" onclick="return false">View Summary <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-time">11:30 AM</div>
+        <div class="meeting-info">
+          <div class="meeting-title">Leadership Standup</div>
+          <a class="meeting-summary-link" href="#" onclick="return false">View Summary <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-time">2:00 PM</div>
+        <div class="meeting-info">
+          <div class="meeting-title">Team Check-in</div>
+          <a class="meeting-summary-link" href="#" onclick="return false">View Summary <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-time">4:00 PM</div>
+        <div class="meeting-info">
+          <div class="meeting-title">Q2 Roadmap Review</div>
+          <a class="meeting-summary-link" href="#" onclick="return false">View Summary <svg width="12" height="12"><use href="#icon-external"/></svg></a>
+        </div>
       </div>
     </div>`;
 }

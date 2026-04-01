@@ -237,7 +237,7 @@ body {
 /* Approve/Deny buttons (Home view uses Deny) */
 .btn-approve-home {
   padding: 6px 20px; border-radius: 4px; font-size: 13px; font-weight: 600;
-  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
+  cursor: pointer; background: var(--workday-blue); color: #fff; border: 1px solid var(--workday-blue);
 }
 .btn-deny-home {
   padding: 6px 20px; border-radius: 4px; font-size: 13px; font-weight: 600;
@@ -251,7 +251,7 @@ body {
 .db-update-item .update-desc { color: #666; font-size: 12px; }
 .btn-create-expense {
   padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 600;
-  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0; margin-top: 8px;
+  cursor: pointer; background: #fff; color: #242424; border: 1px solid #d0d0d0;
 }
 .db-action-item { padding: 10px 0; border-bottom: 1px solid #eee; }
 .db-action-item:last-child { border-bottom: none; }
@@ -285,9 +285,9 @@ body {
 /* Important Dates */
 .important-dates { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #e8e8e8; }
 .important-dates h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-.id-category { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; cursor: default; }
+.id-category { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; cursor: default; }
 .id-category .id-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
-.id-category .id-icon { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.id-category .id-shape { font-size: 12px; flex-shrink: 0; }
 .id-category .id-chevron { color: #999; font-size: 14px; }
 .id-detail { padding: 6px 0 6px 18px; font-size: 12px; color: #666; }
 .id-detail .id-date { color: #e74c3c; font-weight: 600; margin-right: 8px; }
@@ -745,9 +745,15 @@ function renderDailyBrief() {
 
       <div class="db-update-title">1 Update</div>
       <div class="db-update-item">
-        <div class="update-title">You Have Credit Card Transactions Ready to Expense</div>
-        <div class="update-desc">Expense 1 open transaction starting from Monday, November 23, 2026</div>
-        <button class="btn-create-expense">Create Expense</button>
+        <div class="db-task-row">
+          <div>
+            <div class="update-title">You Have Credit Card Transactions Ready to Expense</div>
+            <div class="update-desc">Expense 1 open transaction starting from Monday, November 23, 2026</div>
+          </div>
+          <div class="db-task-actions">
+            <button class="btn-create-expense">Create Expense</button>
+          </div>
+        </div>
       </div>
 
       <div class="db-section-title" style="margin-top:18px">
@@ -806,21 +812,21 @@ function renderCalendarSidebar() {
     </div>
     <div class="important-dates">
       <h4>Important Dates</h4>
-      <div class="id-category">
-        <div class="id-left"><div class="id-icon" style="background:#e74c3c"></div> Due dates</div>
+      <div class="id-category" style="background:#fdf0ef">
+        <div class="id-left"><span class="id-shape" style="color:#e74c3c">▲</span> Due dates</div>
         <span class="id-chevron">▲</span>
       </div>
       <div class="id-detail"><span class="id-date">Feb 20</span> Health and Safety Training 2026</div>
-      <div class="id-category">
-        <div class="id-left"><div class="id-icon" style="background:#4a90d9"></div> Time off and absence</div>
+      <div class="id-category" style="background:#eef5fb">
+        <div class="id-left"><span class="id-shape" style="color:#4a90d9">●</span> Time off and absence</div>
         <span class="id-chevron">▼</span>
       </div>
-      <div class="id-category">
-        <div class="id-left"><div class="id-icon" style="background:#e67e22"></div> Holidays</div>
+      <div class="id-category" style="background:#fdf5ed">
+        <div class="id-left"><span class="id-shape" style="color:#e67e22">◆</span> Holidays</div>
         <span class="id-chevron">▼</span>
       </div>
-      <div class="id-category">
-        <div class="id-left"><div class="id-icon" style="background:#9b59b6"></div> Celebrations</div>
+      <div class="id-category" style="background:#f5eef9">
+        <div class="id-left"><span class="id-shape" style="color:#9b59b6">◆</span> Celebrations</div>
         <span class="id-chevron">▼</span>
       </div>
     </div>
